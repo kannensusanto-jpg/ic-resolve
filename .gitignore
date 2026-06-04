@@ -1,0 +1,25 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/app/__pycache__/
+backend/app/services/__pycache__/
+backend/app/routers/__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/ic_resolve.db
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.egg-info/
+.pytest_cache/

@@ -63,10 +63,18 @@ def _infer_journal_type(account_type: str, lc_amount: float) -> str:
     return "IC_RECEIVABLE" if (lc_amount or 0) < 0 else "IC_PAYABLE"
 
 
-def _upsert_entity(db: Session, code: str, name: str, country: str, region: str):
-    existing = db.get(Entity, code)
+def _upsert_entity(db: Session, code: str, name: str, country: str, region: str, seen: set) -> str:
+    if code in seen:
+        return code
+    seen.add(code)
     currency = CURRENCY_MAP.get(country.strip(), "USD")
-    if not existing:
+    existing = db.get(Entity, code)
+    if existing:
+        existing.name = name
+        existing.functional_currency = currency
+        if region:
+            existing.region = region.strip()
+    else:
         db.add(Entity(
             id=code,
             name=name,
@@ -88,6 +96,7 @@ def import_trial_balance(db: Session, file_bytes: bytes) -> dict:
 
     rows = list(ws.iter_rows(min_row=5, values_only=True))
     imported = skipped = 0
+    seen: set = set()
 
     for row in rows:
         if not row[0]:
@@ -101,7 +110,8 @@ def import_trial_balance(db: Session, file_bytes: bytes) -> dict:
             skipped += 1
             continue
 
-        _upsert_entity(db, entity_code, entity_name or entity_code, country or "", region or "")
+        _upsert_entity(db, entity_code, entity_name or entity_code, country or "", region or "", seen)
+        _upsert_entity(db, ic_counterparty, ic_counterparty, "", "", seen)
 
         db.add(TrialBalance(
             entity_id=entity_code,
@@ -129,6 +139,7 @@ def import_ic_transactions(db: Session, file_bytes: bytes) -> dict:
 
     rows = list(ws.iter_rows(min_row=5, values_only=True))
     imported = skipped = 0
+    seen: set = set()
 
     for row in rows:
         if not row[0] or str(row[0]).startswith("TOTAL"):
@@ -142,7 +153,7 @@ def import_ic_transactions(db: Session, file_bytes: bytes) -> dict:
             skipped += 1
             continue
 
-        _upsert_entity(db, entity_code, entity_name or entity_code, country or "", region or "")
+        _upsert_entity(db, entity_code, entity_name or entity_code, country or "", region or "", seen)
 
         # Parse posting date
         if isinstance(posting_date, datetime):
@@ -181,14 +192,8 @@ def import_ic_transactions(db: Session, file_bytes: bytes) -> dict:
     # Ensure counterparty entities also exist (they may only appear as counterparties)
     all_entries = db.query(JournalEntry).filter(JournalEntry.period == period).all()
     for e in all_entries:
-        if e.counterparty_entity_id and not db.get(Entity, e.counterparty_entity_id):
-            db.add(Entity(
-                id=e.counterparty_entity_id,
-                name=e.counterparty_entity_id,
-                aliases=[],
-                functional_currency="USD",
-                ic_agreement_flag=True,
-            ))
+        if e.counterparty_entity_id:
+            _upsert_entity(db, e.counterparty_entity_id, e.counterparty_entity_id, "", "", seen)
 
     # Seed a close calendar entry for the period if missing
     if not db.query(CloseCalendar).filter(CloseCalendar.period == period).first():

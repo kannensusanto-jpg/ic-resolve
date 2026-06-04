@@ -3,7 +3,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
-import { CheckCircle, XCircle, AlertTriangle, Clock, Building2, Play, Loader2, Upload } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, Clock, Building2, Play, Loader2, Upload, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import type { ReconciliationSummary, ReconciliationMatch } from '../types'
 import clsx from 'clsx'
@@ -91,6 +91,11 @@ export default function Dashboard() {
     onSuccess: () => qc.invalidateQueries(),
   })
 
+  const clearMut = useMutation({
+    mutationFn: () => api.clearData(),
+    onSuccess: () => qc.invalidateQueries(),
+  })
+
   const pieData = summary
     ? Object.entries(summary.by_match_type).map(([k, v]) => ({
         name: MATCH_LABELS[k] ?? k,
@@ -129,6 +134,20 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex gap-2">
+          {hasData && (
+            <button
+              onClick={() => {
+                if (window.confirm('Clear all uploaded data, matches, and disputes? This cannot be undone.')) {
+                  clearMut.mutate()
+                }
+              }}
+              disabled={clearMut.isPending}
+              className="px-4 py-2 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {clearMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={14} />}
+              Clear Data
+            </button>
+          )}
           <button
             onClick={() => setShowUpload(true)}
             className="px-4 py-2 text-sm border border-brand-300 text-brand-700 rounded-lg hover:bg-brand-50 flex items-center gap-2"

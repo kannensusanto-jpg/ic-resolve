@@ -3,8 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Send, Loader2, MessageSquare, Sparkles } from 'lucide-react'
 import { api } from '../api'
 import clsx from 'clsx'
-
-const PERIOD = '2024-03'
+import { useDataStatus } from '../hooks/useDataStatus'
 
 const SUGGESTED_QUERIES = [
   'Show me all open disputes over £50,000',
@@ -25,6 +24,7 @@ interface Message {
 }
 
 export default function QueryInterface() {
+  const { latestPeriod: period } = useDataStatus()
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -34,7 +34,7 @@ export default function QueryInterface() {
   }, [messages])
 
   const queryMut = useMutation({
-    mutationFn: (q: string) => api.query(q, PERIOD).then(r => r.data),
+    mutationFn: (q: string) => api.query(q, period).then(r => r.data),
     onSuccess: (data) => {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -69,7 +69,7 @@ export default function QueryInterface() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">AI Query Interface</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Ask natural language questions about the {PERIOD} intercompany reconciliation
+          Ask natural language questions about the {period} intercompany reconciliation
         </p>
       </div>
 

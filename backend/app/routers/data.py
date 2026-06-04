@@ -7,7 +7,10 @@ from app.services.excel_import import (
     import_trial_balance, import_ic_transactions, import_fx_rates,
     derive_journal_entries_from_tb,
 )
-from app.models import Entity, FXRate, JournalEntry, TrialBalance, CloseCalendar, ToleranceConfig
+from app.models import (
+    Entity, FXRate, JournalEntry, TrialBalance, CloseCalendar, ToleranceConfig,
+    ReconciliationMatch, Dispute, AuditEntry,
+)
 from app.schemas import (
     EntityOut, FXRateOut, JournalEntryOut, TrialBalanceOut,
     CloseCalendarOut, ToleranceConfigOut, ToleranceConfigUpdate,
@@ -28,6 +31,15 @@ def data_status(db: Session = Depends(get_db)):
         "periods": sorted(periods),
         "latest_period": sorted(periods)[-1] if periods else None,
     }
+
+
+@router.delete("/clear")
+def clear_data(db: Session = Depends(get_db)):
+    """Delete all uploaded data, matches, disputes, and audit entries."""
+    for model in [AuditEntry, Dispute, ReconciliationMatch, JournalEntry, TrialBalance, FXRate, CloseCalendar, ToleranceConfig, Entity]:
+        db.query(model).delete()
+    db.commit()
+    return {"status": "cleared"}
 
 
 @router.post("/seed")

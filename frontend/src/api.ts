@@ -13,6 +13,7 @@ export const api = {
   // Data
   getDataStatus: () => http.get<{ has_data: boolean; entry_count: number; periods: string[]; latest_period: string | null }>('/data/status'),
   seed: () => http.post('/data/seed'),
+  clearData: () => http.delete('/data/clear'),
   getEntities: () => http.get<Entity[]>('/data/entities'),
   getFXRates: (period?: string) => http.get<FXRate[]>('/data/fx-rates', { params: { period } }),
   getJournalEntries: (period?: string, entity_id?: string) =>
@@ -26,20 +27,20 @@ export const api = {
     http.post<ToleranceConfig>('/data/tolerance-configs', config),
 
   // Reconciliation
-  normalise: (period = '2024-03') =>
+  normalise: (period = '2026-03') =>
     http.post<NormalisationResult>('/reconciliation/normalise', null, { params: { period } }),
-  match: (period = '2024-03') =>
+  match: (period = '2026-03') =>
     http.post<MatchingResult>('/reconciliation/match', null, { params: { period } }),
-  runAll: (period = '2024-03', use_ai = true) =>
+  runAll: (period = '2026-03', use_ai = true) =>
     http.post('/reconciliation/run-all', null, { params: { period, use_ai } }),
-  getSummary: (period = '2024-03') =>
+  getSummary: (period = '2026-03') =>
     http.get<ReconciliationSummary>('/reconciliation/summary', { params: { period } }),
   getPairs: (period?: string, status?: string) =>
     http.get<ReconciliationMatch[]>('/reconciliation/pairs', { params: { period, status } }),
   getPair: (id: string) => http.get<ReconciliationMatch>(`/reconciliation/pairs/${id}`),
 
   // Disputes
-  generateDisputes: (period = '2024-03', use_ai = true) =>
+  generateDisputes: (period = '2026-03', use_ai = true) =>
     http.post<DisputeResult>('/disputes/generate', null, { params: { period, use_ai } }),
   getDisputes: (period?: string, status?: string, dispute_type?: string) =>
     http.get<Dispute[]>('/disputes', { params: { period, status, dispute_type } }),
@@ -47,13 +48,13 @@ export const api = {
     http.patch<Dispute>(`/disputes/${id}`, update),
 
   // Insights
-  getInsightsSummary: (period = '2024-03') =>
+  getInsightsSummary: (period = '2026-03') =>
     http.get<ReconciliationSummary>('/insights/summary', { params: { period } }),
-  getCloseSummary: (period = '2024-03') =>
+  getCloseSummary: (period = '2026-03') =>
     http.get<{ period: string; summary: string }>('/insights/close-summary', { params: { period } }),
 
   // Query
-  query: (query: string, period = '2024-03') =>
+  query: (query: string, period = '2026-03') =>
     http.post<QueryResponse>('/query', { query, period }),
 
   // Audit

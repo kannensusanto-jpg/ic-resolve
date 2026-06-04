@@ -4,8 +4,7 @@ import { Loader2, ChevronDown, ChevronRight, Shield } from 'lucide-react'
 import { api } from '../api'
 import type { AuditEntry } from '../types'
 import clsx from 'clsx'
-
-const PERIOD = '2024-03'
+import { useDataStatus } from '../hooks/useDataStatus'
 
 const ACTION_COLORS: Record<string, string> = {
   normalisation:   'bg-blue-100 text-blue-700',
@@ -95,11 +94,12 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
 }
 
 export default function AuditTrail() {
+  const { latestPeriod: period } = useDataStatus()
   const [actionFilter, setActionFilter] = useState('')
 
   const { data: entries, isLoading } = useQuery({
-    queryKey: ['audit', PERIOD, actionFilter],
-    queryFn: () => api.getAuditTrail(PERIOD, actionFilter || undefined).then(r => r.data),
+    queryKey: ['audit', period, actionFilter],
+    queryFn: () => api.getAuditTrail(period, actionFilter || undefined).then(r => r.data),
     refetchInterval: 10_000,
   })
 

@@ -4,6 +4,7 @@ WORKDIR /frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
+ARG BUILDTIME=unknown
 RUN npm run build
 
 # Stage 2: Python backend + built frontend

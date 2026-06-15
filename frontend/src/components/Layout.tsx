@@ -53,7 +53,6 @@ export default function Layout() {
         <div className="px-4 py-4 border-t border-brand-800">
           <div className="text-xs text-indigo-400 mb-1">Active Period</div>
           <div className="text-sm font-semibold text-indigo-100">March 2024</div>
-          <div className="text-xs text-indigo-400 mt-0.5">Nexora Group</div>
         </div>
       </aside>
 
